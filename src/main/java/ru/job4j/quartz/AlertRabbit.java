@@ -33,7 +33,7 @@ public class AlertRabbit {
         return DriverManager.getConnection(url, login, password);
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         AlertRabbit alertRabbit = new AlertRabbit();
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
