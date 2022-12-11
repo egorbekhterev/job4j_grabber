@@ -35,17 +35,18 @@ public class AlertRabbit {
 
     public static void main(String[] args) {
         AlertRabbit alertRabbit = new AlertRabbit();
-        try {
+        Properties properties = alertRabbit.init();
+        try (Connection connection = getConnection(properties)) {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDataMap data = new JobDataMap();
-            data.put("store", getConnection(alertRabbit.init()));
+            data.put("store", connection);
             JobDetail job = newJob(Rabbit.class)
                     .usingJobData(data)
                     .build();
             SimpleScheduleBuilder times = simpleSchedule()
                     .withIntervalInSeconds(Integer.parseInt(
-                            alertRabbit.init().getProperty("rabbit.interval")))
+                            properties.getProperty("rabbit.interval")))
                     .repeatForever();
             Trigger trigger = newTrigger()
                     .startNow()
