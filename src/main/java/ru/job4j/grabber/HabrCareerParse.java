@@ -24,36 +24,43 @@ public class HabrCareerParse implements Parse {
     }
 
     @Override
-    public List<Post> list(String link) throws IOException {
+    public List<Post> list(String link) {
         List<Post> list = new ArrayList<>();
-        for (int i = 1; i <= PAGE_COUNTER; i++) {
-            Connection connection = Jsoup.connect(String.format("%s%d", link, i));
-            Document document = connection.get();
-            Elements rows = document.select(".vacancy-card__inner");
-            rows.forEach(row -> {
-                Element titleElement = row.select(".vacancy-card__title").first();
-                Element linkElement = Objects.requireNonNull(titleElement).child(0);
-                String vacancyName = titleElement.text();
-                Element dateElement = Objects.requireNonNull(row.select(".vacancy-card__date").first()).child(0);
-                String fullLink = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                String date = dateElement.attr("datetime");
-                LocalDateTime dateAfterParsing = dateTimeParser.parse(date);
-                String description = retrieveDescription(fullLink);
-                list.add(new Post(vacancyName, fullLink, description, dateAfterParsing));
-            });
+        try {
+            for (int i = 1; i <= PAGE_COUNTER; i++) {
+                Connection connection = Jsoup.connect(String.format("%s%d", link, i));
+                Document document = connection.get();
+                Elements rows = document.select(".vacancy-card__inner");
+                rows.forEach(element -> list.add(parsing(element)));
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error while adding elements to list.");
         }
         return list;
     }
 
+    private Post parsing(Element element) {
+        Element titleElement = element.select(".vacancy-card__title").first();
+        Element linkElement = Objects.requireNonNull(titleElement).child(0);
+        String vacancyName = titleElement.text();
+        Element dateElement = Objects.requireNonNull(element.select(".vacancy-card__date").first()).child(0);
+        String fullLink = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+        String date = dateElement.attr("datetime");
+        LocalDateTime dateAfterParsing = dateTimeParser.parse(date);
+        String description = retrieveDescription(fullLink);
+        return new Post(vacancyName, fullLink, description, dateAfterParsing);
+    }
+
     private String retrieveDescription(String link) {
-        Connection connection = Jsoup.connect(link);
-        Document document = null;
+        String  retrieved;
         try {
-            document = connection.get();
+            Connection connection = Jsoup.connect(link);
+            Document document = connection.get();
+            Elements rows = Objects.requireNonNull(document).select(".style-ugc");
+            retrieved = rows.text();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("Error while retrieving description of the vacancy.");
         }
-        Elements rows = Objects.requireNonNull(document).select(".style-ugc");
-        return rows.text();
+        return retrieved;
     }
 }
