@@ -16,8 +16,8 @@ import java.util.Objects;
 
 public class HabrCareerParse implements Parse {
     private static final String SOURCE_LINK = "https://career.habr.com";
-    private static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=", SOURCE_LINK);
-    private static final int PAGE_COUNTER = 1;
+    public static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=", SOURCE_LINK);
+    private static final int PAGE_COUNTER = 5;
     private final DateTimeParser dateTimeParser;
 
     public HabrCareerParse(DateTimeParser dateTimeParser) {
