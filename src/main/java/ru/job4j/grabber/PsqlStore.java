@@ -2,9 +2,14 @@ package ru.job4j.grabber;
 
 import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -95,15 +100,16 @@ public class PsqlStore implements Store {
                 .getResourceAsStream("app.properties")) {
             Properties properties = new Properties();
             properties.load(in);
-            PsqlStore psqlStore = new PsqlStore(properties);
             HabrCareerParse habrCareerParse = new HabrCareerParse(new HabrCareerDateTimeParser());
             List<Post> posts = habrCareerParse.list("https://career.habr.com/vacancies/java_developer?=page");
-            posts.forEach(psqlStore::save);
-            List<Post> newPost = psqlStore.getAll();
-            newPost.forEach(System.out::println);
-            Post post = psqlStore.findById(5);
-            System.out.println(post);
-        } catch (IOException e) {
+            try (PsqlStore psqlStore = new PsqlStore(properties)) {
+                posts.forEach(psqlStore::save);
+                List<Post> newPost = psqlStore.getAll();
+                newPost.forEach(System.out::println);
+                Post post = psqlStore.findById(5);
+                System.out.println(post);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
